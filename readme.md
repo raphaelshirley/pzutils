@@ -4,3 +4,11 @@ This repository contains some basic plotting and stats functions for photometric
 
 Currently it is just a location to keep my personal utilities.
 
+It should install with 
+
+```Shell
+pip install -e .
+```
+
+But is currently using [HELP](https://github.com/H-E-L-P/herschelhelp_python) packages which are not working on PyPI.
+
