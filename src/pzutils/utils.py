@@ -420,6 +420,7 @@ def photoz_plots_onecol(
     name="",
     log=False,
     savefig=False,
+    plot_medians=False,
     ticks0=[1, 10],
     ticks1=[1, 10],
 ):
@@ -594,6 +595,15 @@ def photoz_plots_onecol(
     # cax2 = divider2.append_axes("right", size="5%", pad=0.05)
     # cb=fig.colorbar(hb2,ax=ax2,cax=cax2)#,label='$N_{Objects}$')
     ax1.set_yticks([-0.15, -0.1, -0.05, 0, 0.05, 0.1, 0.15])
+
+    # Plot the medians, and 1 sigma interval
+    if plot_medians:
+        bins, mid_points, delz_16, delz_median, delz_84 = binned_stats(z1, z2)
+        ax1.plot(mid_points, delz_median, c="r")
+        ax1.plot(mid_points, delz_16, c="r", linewidth=0.3)
+        ax1.plot(mid_points, delz_84, c="r", linewidth=0.3)
+        ax1.fill_between(mid_points, delz_16, delz_84, color="r", alpha=0.3)
+
     # colourbar
     divider1 = make_axes_locatable(ax1)
     cax1 = divider1.append_axes("right", size="5%", pad=0.05)
@@ -617,6 +627,47 @@ def photoz_plots_onecol(
         fig.savefig("./figs/{}.png".format(fig_name), bbox_inches="tight")
         fig.savefig("./figs/{}.pdf".format(fig_name), bbox_inches="tight")
     return stats
+
+
+def fill_nan_linear(arr):
+    # Find indices where values are NaN
+    nans = np.isnan(arr)
+    # Use np.interp to linearly interpolate NaN values
+    arr[nans] = np.interp(np.flatnonzero(nans), np.flatnonzero(~nans), arr[~nans])
+    return arr
+
+
+def binned_stats(x, y, bins=30):
+    # Get medians and 1 sigma for bins in specz space
+    n_bins = 30
+    delz = (y - x) / (1 + x)
+    bins = np.linspace(np.nanmin(x), np.nanmax(x), n_bins)
+    delz_median = np.full(len(bins) - 1, np.nan)
+    delz_16 = np.full(len(bins) - 1, np.nan)
+    delz_84 = np.full(len(bins) - 1, np.nan)
+    mid_points = np.array(
+        [(bins[n] + bins[n + 1]) / 2 for n in np.arange(len(bins) - 1)]
+    )
+    for n, b in enumerate(bins[:-1]):
+        in_bin = x > bins[n]
+        in_bin &= x < bins[n + 1]
+        try:
+            delz_median[n] = np.nanmedian(delz[in_bin])
+            delz_16[n] = np.nanpercentile(delz[in_bin], 15.865)
+            delz_84[n] = np.nanpercentile(delz[in_bin], 84.135)
+        except ValueError:
+            delz_median[n] = np.nan
+            delz_16[n] = np.nan
+            delz_84[n] = np.nan
+        # if np.sum(in_bin)<2: #Get rid of underfilled bins
+        #     delz_median[n]=np.nan
+        #     delz_16[n]=np.nan
+        #     delz_84[n]=np.nan
+
+    delz_median = fill_nan_linear(delz_median)
+    delz_16 = fill_nan_linear(delz_16)
+    delz_84 = fill_nan_linear(delz_84)
+    return bins, mid_points, delz_16, delz_median, delz_84
 
 
 def row_to_gauss(row, n):
