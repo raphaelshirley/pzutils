@@ -421,8 +421,8 @@ def photoz_plots_onecol(
     log=False,
     savefig=False,
     plot_medians=False,
-    ticks0=[1, 10],
-    ticks1=[1, 10],
+    ticks0=None,
+    ticks1=None,
 ):
     """Standard photoz compariosn plots
 
@@ -505,6 +505,9 @@ def photoz_plots_onecol(
         linewidths=0.01,
         gridsize=gridsize,
     )
+    ax0_maxoc = np.max(hb0.get_array())
+    if ticks0 is None:
+        ticks0 = axis_scale(ax0_maxoc)
     ax0.set(xlim=xlim, ylim=ylim)
 
     # ax0.set_xlabel(z1_name)
@@ -581,6 +584,9 @@ def photoz_plots_onecol(
         linewidths=0.01,
         gridsize=del_gridsize,
     )
+    ax0_maxoc = np.max(hb0.get_array())
+    if ticks0 is None:
+        ticks0 = axis_scale(ax0_maxoc)
     ax1.set(xlim=xlim, ylim=delz_lims)
 
     ax1.set_xlabel(z1_name)
@@ -635,6 +641,23 @@ def fill_nan_linear(arr):
     # Use np.interp to linearly interpolate NaN values
     arr[nans] = np.interp(np.flatnonzero(nans), np.flatnonzero(~nans), arr[~nans])
     return arr
+
+
+def axis_scale(n):
+    """ "Return colorbar values for the scale
+
+    Powers of ten up to largest power of ten below n if n>10
+    Else all values lower than 10
+
+    """
+    n = int(n)
+    if n < 0:
+        raise ValueError
+    if n <= 10:
+        scales = np.arange(0, n)
+    if n > 10:
+        scales = [int(10**i) for i in np.arange(0, np.floor(np.log10(n)) + 1)]
+    return scales
 
 
 def binned_stats(x, y, bins=30):
