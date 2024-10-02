@@ -516,25 +516,29 @@ def photoz_plots_onecol(
     # ax0.set_title("z phot vs z spec")
     ax0.plot([0, xlim[1]], [0, xlim[1]], linestyle="-", color="red", linewidth="1.")
     ax0.plot(
-        [0, xlim[1]], [0.05, 1.05 * xlim[1]], linestyle="-", color="red", linewidth="1."
-    )
-    ax0.plot(
         [0, xlim[1]],
-        [-0.05, 0.95 * xlim[1]],
+        [0.05, 0.05 + 1.05 * xlim[1]],
         linestyle="-",
         color="red",
         linewidth="1.",
     )
     ax0.plot(
         [0, xlim[1]],
-        [0.15, 1.15 * xlim[1]],
+        [-0.05, -0.05 + 0.95 * xlim[1]],
+        linestyle="-",
+        color="red",
+        linewidth="1.",
+    )
+    ax0.plot(
+        [0, xlim[1]],
+        [0.15, 0.15 + 1.15 * xlim[1]],
         linestyle="--",
         color="red",
         linewidth="1.",
     )
     ax0.plot(
         [0, xlim[1]],
-        [-0.15, 0.85 * xlim[1]],
+        [-0.15, -0.15 + 0.85 * xlim[1]],
         linestyle="--",
         color="red",
         linewidth="1.",
@@ -671,6 +675,7 @@ def binned_stats(x, y, bins=30):
     mid_points = np.array(
         [(bins[n] + bins[n + 1]) / 2 for n in np.arange(len(bins) - 1)]
     )
+    after_empty_bin = False
     for n, b in enumerate(bins[:-1]):
         in_bin = x > bins[n]
         in_bin &= x < bins[n + 1]
@@ -682,10 +687,11 @@ def binned_stats(x, y, bins=30):
             delz_median[n] = np.nan
             delz_16[n] = np.nan
             delz_84[n] = np.nan
-        # if np.sum(in_bin)<2: #Get rid of underfilled bins
-        #     delz_median[n]=np.nan
-        #     delz_16[n]=np.nan
-        #     delz_84[n]=np.nan
+        if np.sum(in_bin) < 2 or after_empty_bin:  # Get rid of underfilled bins
+            delz_median[n] = np.nan
+            delz_16[n] = np.nan
+            delz_84[n] = np.nan
+            after_empty_bin = True
 
     delz_median = fill_nan_linear(delz_median)
     delz_16 = fill_nan_linear(delz_16)
