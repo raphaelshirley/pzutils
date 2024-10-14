@@ -161,252 +161,252 @@ def isMagCol(col):
     return is_mag
 
 
-def photoz_plots(
-    z1,
-    z1_name,
-    z2,
-    z2_name,
-    xlim=[0, 4],
-    ylim=[0, 4],
-    plot_del=False,
-    name="",
-    log=False,
-):
-    """Standard photoz compariosn plots
+# def photoz_plots(
+#     z1,
+#     z1_name,
+#     z2,
+#     z2_name,
+#     xlim=[0, 4],
+#     ylim=[0, 4],
+#     plot_del=False,
+#     name="",
+#     log=False,
+# ):
+#     """Standard photoz compariosn plots
 
-    Make a grid of direct comparison and bias comparison
-    Maybe also return metircs.
-    """
+#     Make a grid of direct comparison and bias comparison
+#     Maybe also return metircs.
+#     """
 
-    # orig_map=plt.cm.get_cmap('magma')
-    orig_map = plt.colormaps["magma"]
-    # reversed_map=orig_map.reversed()
-    cmap = plt.cm.viridis
+#     # orig_map=plt.cm.get_cmap('magma')
+#     orig_map = plt.colormaps["magma"]
+#     # reversed_map=orig_map.reversed()
+#     cmap = plt.cm.viridis
 
-    if plot_del:
-        fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(
-            nrows=2, ncols=2, sharey="row", sharex=True, figsize=(10, 10)
-        )
+#     if plot_del:
+#         fig, ((ax0, ax1), (ax2, ax3)) = plt.subplots(
+#             nrows=2, ncols=2, sharey="row", sharex=True, figsize=(10, 10)
+#         )
 
-        # fig.suptitle(name)
-        ax0.set_title("$N$")
-        # ax0.set_aspect('equal')
-        ax1.set_title("$log(N)$")
-        # ax1.set_aspect('equal')
-        # ax2.set_aspect('equal')
-        # ax3.set_aspect('equal')
+#         # fig.suptitle(name)
+#         ax0.set_title("$N$")
+#         # ax0.set_aspect('equal')
+#         ax1.set_title("$log(N)$")
+#         # ax1.set_aspect('equal')
+#         # ax2.set_aspect('equal')
+#         # ax3.set_aspect('equal')
 
-        ax0.set_aspect(1)
-        ax1.set_aspect(1)
-        # ax2.set_aspect('equal')
-        # ax3.set_aspect('equal')
+#         ax0.set_aspect(1)
+#         ax1.set_aspect(1)
+#         # ax2.set_aspect('equal')
+#         # ax3.set_aspect('equal')
 
-    else:
-        fig, (ax0, ax1) = plt.subplots(ncols=2, sharey="row")  # ,figsize=(10,4))
-        # fig.suptitle(name)
-        ax0.set_title("$N$")
-        ax0.set_aspect("equal")
-        ax1.set_title("$log(N)$")
-        ax1.set_aspect("equal")
+#     else:
+#         fig, (ax0, ax1) = plt.subplots(ncols=2, sharey="row")  # ,figsize=(10,4))
+#         # fig.suptitle(name)
+#         ax0.set_title("$N$")
+#         ax0.set_aspect("equal")
+#         ax1.set_title("$log(N)$")
+#         ax1.set_aspect("equal")
 
-    mask = z1 > xlim[0]
-    mask &= z1 < xlim[1]
-    mask &= z2 > ylim[0]
-    mask &= z2 < ylim[1]
-    delz = (z2 - z1) / (1 + z1)
+#     mask = z1 > xlim[0]
+#     mask &= z1 < xlim[1]
+#     mask &= z2 > ylim[0]
+#     mask &= z2 < ylim[1]
+#     delz = (z2 - z1) / (1 + z1)
 
-    delz_extent = 0.4  # (xlim[1]-xlim[0])
-    delz_lims = [
-        -delz_extent / 2,
-        delz_extent / 2,
-    ]  # [-(xlim[1]-xlim[0])/2,(xlim[1]-xlim[0])/2]
-    mask2 = z1 > xlim[0]
-    mask2 &= z1 < xlim[1]
-    mask2 &= z2 > ylim[0]
-    mask2 &= z2 < ylim[1]
-    mask2 &= delz > delz_lims[0]
-    mask2 &= delz < delz_lims[1]
+#     delz_extent = 0.4  # (xlim[1]-xlim[0])
+#     delz_lims = [
+#         -delz_extent / 2,
+#         delz_extent / 2,
+#     ]  # [-(xlim[1]-xlim[0])/2,(xlim[1]-xlim[0])/2]
+#     mask2 = z1 > xlim[0]
+#     mask2 &= z1 < xlim[1]
+#     mask2 &= z2 > ylim[0]
+#     mask2 &= z2 < ylim[1]
+#     mask2 &= delz > delz_lims[0]
+#     mask2 &= delz < delz_lims[1]
 
-    maskPos = (z1 > 0) & (z2 > 0)
-    outlier_frac = np.sum(np.abs(delz[maskPos]) > 0.15) / np.sum(maskPos)
-    sigma_nmad = 1.48 * np.median(np.abs(delz[maskPos]))
-    # print("""Objects in range: {}
-    # Outlier fraction: {}%
-    # Sigma (NMAD):{}
-    # """.format(np.sum(mask),round(outlier_frac/100,2),round(sigma_nmad,3)))
+#     maskPos = (z1 > 0) & (z2 > 0)
+#     outlier_frac = np.sum(np.abs(delz[maskPos]) > 0.15) / np.sum(maskPos)
+#     sigma_nmad = 1.48 * np.median(np.abs(delz[maskPos]))
+#     # print("""Objects in range: {}
+#     # Outlier fraction: {}%
+#     # Sigma (NMAD):{}
+#     # """.format(np.sum(mask),round(outlier_frac/100,2),round(sigma_nmad,3)))
 
-    fig.suptitle(
-        "{}, {}/{} sources, $\eta$: {}%, $\sigma_{{NMAD}}$: {}".format(
-            name,
-            np.sum(mask),
-            len(mask),
-            round(outlier_frac * 100, 2),
-            round(sigma_nmad, 3),
-        )
-    )
+#     fig.suptitle(
+#         "{}, {}/{} sources, $\eta$: {}%, $\sigma_{{NMAD}}$: {}".format(
+#             name,
+#             np.sum(mask),
+#             len(mask),
+#             round(outlier_frac * 100, 2),
+#             round(sigma_nmad, 3),
+#         )
+#     )
 
-    n_hex = 30
-    x_scale = np.max(z1[mask]) / xlim[1]
-    y_scale = np.max(z2[mask]) / ylim[1]
-    del_scale = (np.max(delz[mask2]) - np.min(delz[mask2])) / (
-        delz_lims[1] - delz_lims[0]
-    )
+#     n_hex = 30
+#     x_scale = np.max(z1[mask]) / xlim[1]
+#     y_scale = np.max(z2[mask]) / ylim[1]
+#     del_scale = (np.max(delz[mask2]) - np.min(delz[mask2])) / (
+#         delz_lims[1] - delz_lims[0]
+#     )
 
-    gridsize = [round(np.sqrt(3) * n_hex * x_scale), round(n_hex * y_scale)]
-    del_gridsize = [round(np.sqrt(3) * n_hex * x_scale), round(n_hex * del_scale)]
-    # ax2.set_aspect(del_scale)
-    # ax3.set_aspect(del_scale)
-    # fig.subplots_adjust(wspace=0,hspace=0)
+#     gridsize = [round(np.sqrt(3) * n_hex * x_scale), round(n_hex * y_scale)]
+#     del_gridsize = [round(np.sqrt(3) * n_hex * x_scale), round(n_hex * del_scale)]
+#     # ax2.set_aspect(del_scale)
+#     # ax3.set_aspect(del_scale)
+#     # fig.subplots_adjust(wspace=0,hspace=0)
 
-    hb0 = ax0.hexbin(
-        z1[mask], z2[mask], cmap=cmap, mincnt=1, linewidths=0.01, gridsize=gridsize
-    )
-    ax0.set(xlim=xlim, ylim=ylim)
+#     hb0 = ax0.hexbin(
+#         z1[mask], z2[mask], cmap=cmap, mincnt=1, linewidths=0.01, gridsize=gridsize
+#     )
+#     ax0.set(xlim=xlim, ylim=ylim)
 
-    # ax0.set_xlabel(z1_name)
-    ax0.set_ylabel(z2_name)
-    # ax0.set_xticks([])
-    # ax0.set_title("z phot vs z spec")
-    ax0.plot([0, xlim[1]], [0, xlim[1]], linestyle="-", color="red", linewidth="1.")
-    ax0.plot(
-        [0, xlim[1]], [0.05, 1.05 * xlim[1]], linestyle="-", color="red", linewidth="1."
-    )
-    ax0.plot(
-        [0, xlim[1]],
-        [-0.05, 0.95 * xlim[1]],
-        linestyle="-",
-        color="red",
-        linewidth="1.",
-    )
-    ax0.plot(
-        [0, xlim[1]],
-        [0.15, 1.15 * xlim[1]],
-        linestyle="--",
-        color="red",
-        linewidth="1.",
-    )
-    ax0.plot(
-        [0, xlim[1]],
-        [-0.15, 0.85 * xlim[1]],
-        linestyle="--",
-        color="red",
-        linewidth="1.",
-    )
-    # divider0 = make_axes_locatable(ax0)
-    # cax0 = divider0.append_axes("right", size="5%", pad=0.05)
-    # cb=fig.colorbar(hb0,ax=ax0,cax=cax0)#,label='$N_{Objects}$')
+#     # ax0.set_xlabel(z1_name)
+#     ax0.set_ylabel(z2_name)
+#     # ax0.set_xticks([])
+#     # ax0.set_title("z phot vs z spec")
+#     ax0.plot([0, xlim[1]], [0, xlim[1]], linestyle="-", color="red", linewidth="1.")
+#     ax0.plot(
+#         [0, xlim[1]], [0.05, 1.05 * xlim[1]], linestyle="-", color="red", linewidth="1."
+#     )
+#     ax0.plot(
+#         [0, xlim[1]],
+#         [-0.05, 0.95 * xlim[1]],
+#         linestyle="-",
+#         color="red",
+#         linewidth="1.",
+#     )
+#     ax0.plot(
+#         [0, xlim[1]],
+#         [0.15, 1.15 * xlim[1]],
+#         linestyle="--",
+#         color="red",
+#         linewidth="1.",
+#     )
+#     ax0.plot(
+#         [0, xlim[1]],
+#         [-0.15, 0.85 * xlim[1]],
+#         linestyle="--",
+#         color="red",
+#         linewidth="1.",
+#     )
+#     # divider0 = make_axes_locatable(ax0)
+#     # cax0 = divider0.append_axes("right", size="5%", pad=0.05)
+#     # cb=fig.colorbar(hb0,ax=ax0,cax=cax0)#,label='$N_{Objects}$')
 
-    hb1 = ax1.hexbin(
-        z1[mask],
-        z2[mask],
-        bins="log",
-        cmap=cmap,
-        mincnt=1,
-        linewidths=0.01,
-        gridsize=gridsize,
-    )
-    ax1.set(xlim=xlim, ylim=ylim)
-    # ax1.set_xlabel(z1_name)
-    # ax1.set_ylabel(z2_name)
-    # ax1.set_title("z phot vs z spec with log colour scale")
-    # ax1.set_xticks([])
-    ax1.plot([0, xlim[1]], [0, xlim[1]], linestyle="-", color="red", linewidth="1.")
-    ax1.plot(
-        [0, xlim[1]], [0.05, 1.05 * xlim[1]], linestyle="-", color="red", linewidth="1."
-    )
-    ax1.plot(
-        [0, xlim[1]],
-        [-0.05, 0.95 * xlim[1]],
-        linestyle="-",
-        color="red",
-        linewidth="1.",
-    )
-    ax1.plot(
-        [0, xlim[1]],
-        [0.15, 1.15 * xlim[1]],
-        linestyle="--",
-        color="red",
-        linewidth="1.",
-    )
-    ax1.plot(
-        [0, xlim[1]],
-        [-0.15, 0.85 * xlim[1]],
-        linestyle="--",
-        color="red",
-        linewidth="1.",
-    )
-    # divider1 = make_axes_locatable(ax1)
-    # cax1 = divider1.append_axes("right", size="5%", pad=0.05)
-    # cb=fig.colorbar(hb1,ax=ax1,cax=cax1)#,label='$log_{10}(N_{Objects})$')
+#     hb1 = ax1.hexbin(
+#         z1[mask],
+#         z2[mask],
+#         bins="log",
+#         cmap=cmap,
+#         mincnt=1,
+#         linewidths=0.01,
+#         gridsize=gridsize,
+#     )
+#     ax1.set(xlim=xlim, ylim=ylim)
+#     # ax1.set_xlabel(z1_name)
+#     # ax1.set_ylabel(z2_name)
+#     # ax1.set_title("z phot vs z spec with log colour scale")
+#     # ax1.set_xticks([])
+#     ax1.plot([0, xlim[1]], [0, xlim[1]], linestyle="-", color="red", linewidth="1.")
+#     ax1.plot(
+#         [0, xlim[1]], [0.05, 1.05 * xlim[1]], linestyle="-", color="red", linewidth="1."
+#     )
+#     ax1.plot(
+#         [0, xlim[1]],
+#         [-0.05, 0.95 * xlim[1]],
+#         linestyle="-",
+#         color="red",
+#         linewidth="1.",
+#     )
+#     ax1.plot(
+#         [0, xlim[1]],
+#         [0.15, 1.15 * xlim[1]],
+#         linestyle="--",
+#         color="red",
+#         linewidth="1.",
+#     )
+#     ax1.plot(
+#         [0, xlim[1]],
+#         [-0.15, 0.85 * xlim[1]],
+#         linestyle="--",
+#         color="red",
+#         linewidth="1.",
+#     )
+#     # divider1 = make_axes_locatable(ax1)
+#     # cax1 = divider1.append_axes("right", size="5%", pad=0.05)
+#     # cb=fig.colorbar(hb1,ax=ax1,cax=cax1)#,label='$log_{10}(N_{Objects})$')
 
-    if plot_del:
-        hb2 = ax2.hexbin(
-            z1[mask2],
-            delz[mask2],
-            cmap=cmap,
-            mincnt=1,
-            linewidths=0.01,
-            gridsize=del_gridsize,
-        )
-        ax2.set(xlim=xlim, ylim=delz_lims)
+#     if plot_del:
+#         hb2 = ax2.hexbin(
+#             z1[mask2],
+#             delz[mask2],
+#             cmap=cmap,
+#             mincnt=1,
+#             linewidths=0.01,
+#             gridsize=del_gridsize,
+#         )
+#         ax2.set(xlim=xlim, ylim=delz_lims)
 
-        ax2.set_xlabel(z1_name)
-        ax2.set_ylabel("$\Delta z/(1+z)$")
-        # ax0.set_title("z phot vs z spec")
-        ax2.plot([0, xlim[1]], [0, 0], linestyle="-", color="red", linewidth="1.")
-        ax2.plot(
-            [0, xlim[1]], [-0.05, -0.05], linestyle="-", color="red", linewidth="1."
-        )
-        ax2.plot([0, xlim[1]], [0.05, 0.05], linestyle="-", color="red", linewidth="1.")
-        ax2.plot(
-            [0, xlim[1]], [-0.15, -0.15], linestyle="--", color="red", linewidth="1."
-        )
-        ax2.plot(
-            [0, xlim[1]], [0.15, 0.15], linestyle="--", color="red", linewidth="1."
-        )
-        # divider2 = make_axes_locatable(ax2)
-        # cax2 = divider2.append_axes("right", size="5%", pad=0.05)
-        # cb=fig.colorbar(hb2,ax=ax2,cax=cax2)#,label='$N_{Objects}$')
+#         ax2.set_xlabel(z1_name)
+#         ax2.set_ylabel("$\Delta z/(1+z)$")
+#         # ax0.set_title("z phot vs z spec")
+#         ax2.plot([0, xlim[1]], [0, 0], linestyle="-", color="red", linewidth="1.")
+#         ax2.plot(
+#             [0, xlim[1]], [-0.05, -0.05], linestyle="-", color="red", linewidth="1."
+#         )
+#         ax2.plot([0, xlim[1]], [0.05, 0.05], linestyle="-", color="red", linewidth="1.")
+#         ax2.plot(
+#             [0, xlim[1]], [-0.15, -0.15], linestyle="--", color="red", linewidth="1."
+#         )
+#         ax2.plot(
+#             [0, xlim[1]], [0.15, 0.15], linestyle="--", color="red", linewidth="1."
+#         )
+#         # divider2 = make_axes_locatable(ax2)
+#         # cax2 = divider2.append_axes("right", size="5%", pad=0.05)
+#         # cb=fig.colorbar(hb2,ax=ax2,cax=cax2)#,label='$N_{Objects}$')
 
-        hb3 = ax3.hexbin(
-            z1[mask2],
-            delz[mask2],
-            bins="log",
-            cmap=cmap,
-            mincnt=1,
-            linewidths=0.01,
-            gridsize=del_gridsize,
-        )
-        ax3.set(xlim=xlim, ylim=delz_lims)
-        ax3.set_xlabel(z1_name)
-        # ax3.set_ylabel('$(z_2-z_1)/z_1$')
-        # ax1.set_title("z phot vs z spec with log colour scale")
-        ax3.plot([0, xlim[1]], [0, 0], linestyle="-", color="red", linewidth="1.")
-        ax3.plot(
-            [0, xlim[1]], [-0.05, -0.05], linestyle="-", color="red", linewidth="1."
-        )
-        ax3.plot([0, xlim[1]], [0.05, 0.05], linestyle="-", color="red", linewidth="1.")
-        ax3.plot(
-            [0, xlim[1]], [-0.15, -0.15], linestyle="--", color="red", linewidth="1."
-        )
-        ax3.plot(
-            [0, xlim[1]], [0.15, 0.15], linestyle="--", color="red", linewidth="1."
-        )
-        # divider3 = make_axes_locatable(ax3)
-        # cax3 = divider3.append_axes("right", size="5%", pad=0.05)
-        # cb=fig.colorbar(hb3,ax=ax3,cax=cax3)#,label='$log_{10}(N_{Objects})$')
-        # for ax in [ax0,ax1,ax2,ax3]:
-        #     ax.label_outer()
+#         hb3 = ax3.hexbin(
+#             z1[mask2],
+#             delz[mask2],
+#             bins="log",
+#             cmap=cmap,
+#             mincnt=1,
+#             linewidths=0.01,
+#             gridsize=del_gridsize,
+#         )
+#         ax3.set(xlim=xlim, ylim=delz_lims)
+#         ax3.set_xlabel(z1_name)
+#         # ax3.set_ylabel('$(z_2-z_1)/z_1$')
+#         # ax1.set_title("z phot vs z spec with log colour scale")
+#         ax3.plot([0, xlim[1]], [0, 0], linestyle="-", color="red", linewidth="1.")
+#         ax3.plot(
+#             [0, xlim[1]], [-0.05, -0.05], linestyle="-", color="red", linewidth="1."
+#         )
+#         ax3.plot([0, xlim[1]], [0.05, 0.05], linestyle="-", color="red", linewidth="1.")
+#         ax3.plot(
+#             [0, xlim[1]], [-0.15, -0.15], linestyle="--", color="red", linewidth="1."
+#         )
+#         ax3.plot(
+#             [0, xlim[1]], [0.15, 0.15], linestyle="--", color="red", linewidth="1."
+#         )
+#         # divider3 = make_axes_locatable(ax3)
+#         # cax3 = divider3.append_axes("right", size="5%", pad=0.05)
+#         # cb=fig.colorbar(hb3,ax=ax3,cax=cax3)#,label='$log_{10}(N_{Objects})$')
+#         # for ax in [ax0,ax1,ax2,ax3]:
+#         #     ax.label_outer()
 
-    fig_name = (
-        "LePhare_{}_{}_{}".format(z1_name, z2_name, name)
-        .replace("$", "")
-        .replace("{", "")
-        .replace("}", "")
-    )
-    fig.savefig("./figs/{}.png".format(fig_name), bbox_inches="tight")
-    fig.savefig("./figs/{}.pdf".format(fig_name), bbox_inches="tight")
-    return None
+#     fig_name = (
+#         "LePhare_{}_{}_{}".format(z1_name, z2_name, name)
+#         .replace("$", "")
+#         .replace("{", "")
+#         .replace("}", "")
+#     )
+#     fig.savefig("./figs/{}.png".format(fig_name), bbox_inches="tight")
+#     fig.savefig("./figs/{}.pdf".format(fig_name), bbox_inches="tight")
+#     return None
 
 
 def photoz_plots_onecol(
@@ -421,8 +421,10 @@ def photoz_plots_onecol(
     log=False,
     savefig=False,
     plot_medians=False,
+    med_bins=30,
     ticks0=None,
     ticks1=None,
+    no_plots=False,
 ):
     """Standard photoz compariosn plots
 
@@ -467,8 +469,8 @@ def photoz_plots_onecol(
     ]  # [-(xlim[1]-xlim[0])/2,(xlim[1]-xlim[0])/2]
     mask2 = z1 > xlim[0]
     mask2 &= z1 < xlim[1]
-    mask2 &= z2 > ylim[0]
-    mask2 &= z2 < ylim[1]
+    # mask2 &= z2 > ylim[0]
+    # mask2 &= z2 < ylim[1]
     mask2 &= delz > delz_lims[0]
     mask2 &= delz < delz_lims[1]
 
@@ -479,6 +481,8 @@ def photoz_plots_onecol(
     stats["bias"] = bias
     stats["sigma_nmad"] = sigma_nmad
     stats["outlier_frac"] = outlier_frac
+    if no_plots:
+        return stats
     # print("""Objects in range: {}
     # Outlier fraction: {}%
     # Sigma (NMAD):{}
@@ -555,7 +559,7 @@ def photoz_plots_onecol(
     # fig.suptitle(textstr)
     # Box insert
     # these are matplotlib.patch.Patch properties
-    props = dict(boxstyle="round", facecolor="white", alpha=0.5)
+    props = dict(boxstyle="round", facecolor="white", alpha=0.7)
     ax0.text(
         0.03,
         0.97,
@@ -588,9 +592,9 @@ def photoz_plots_onecol(
         linewidths=0.01,
         gridsize=del_gridsize,
     )
-    ax0_maxoc = np.max(hb0.get_array())
-    if ticks0 is None:
-        ticks0 = axis_scale(ax0_maxoc)
+    ax1_maxoc = np.max(hb1.get_array())
+    if ticks1 is None:
+        ticks1 = axis_scale(ax1_maxoc)
     ax1.set(xlim=xlim, ylim=delz_lims)
 
     ax1.set_xlabel(z1_name)
@@ -608,7 +612,9 @@ def photoz_plots_onecol(
 
     # Plot the medians, and 1 sigma interval
     if plot_medians:
-        bins, mid_points, delz_16, delz_median, delz_84 = binned_stats(z1, z2)
+        bins, mid_points, delz_16, delz_median, delz_84 = binned_stats(
+            z1, z2, bins=med_bins
+        )
         ax1.plot(mid_points, delz_median, c="r")
         ax1.plot(mid_points, delz_16, c="r", linewidth=0.3)
         ax1.plot(mid_points, delz_84, c="r", linewidth=0.3)
@@ -666,7 +672,7 @@ def axis_scale(n):
 
 def binned_stats(x, y, bins=30):
     # Get medians and 1 sigma for bins in specz space
-    n_bins = 30
+    n_bins = bins
     delz = (y - x) / (1 + x)
     bins = np.linspace(np.nanmin(x), np.nanmax(x), n_bins)
     delz_median = np.full(len(bins) - 1, np.nan)
