@@ -3,6 +3,8 @@ import astropy.units as u
 from astropy.io import ascii
 from astropy.io.ascii import InconsistentTableError
 import numpy as np
+import scipy as sp
+
 from herschelhelp_internal.utils import mag_to_flux
 from herschelhelp.filters import correct_galactic_extinction
 from herschelhelp.external import convert_table_for_cigale
@@ -963,7 +965,7 @@ def make_posteriors(table, spec_col="SPECZ_REDSHIFT", id_col="id"):
             # outlier min integral of pdf between (z-0.1)(1+z) and (z+0.1)(1+z)
             z_om, fracs = outlier_min(zgrid, pdf, max=False)
 
-        except:
+        except IndexError:
             # print('{} failed due to index error'.format(row['ERO_ID']))
             # break
             peak, median, z_om, cdf, norm, pit = (

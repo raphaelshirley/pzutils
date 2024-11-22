@@ -130,6 +130,71 @@ def cdf_at_value(row, x):
     return cdf[0]
 
 
+def outlier_min(zgrid, pdf, max=True):
+    """Return the value of z that minimises the outlier fraction
+
+    that is assuming the posterior to be correct what is the probability that
+    the specz lies in a region that would not make it an outlier where:
+    |z_s-z_p|/(1+z_s)>0.1
+
+    integral of pdf between (z_p-0.15)/1.15 and (z_p+0.15)/0.85
+    """
+    z1 = [(z - 0.15) / 1.15 for z in zgrid]
+    z2 = [(z + 0.15) / 0.85 for z in zgrid]
+    # idx = (np.abs(array - value)).argmin()
+    i_vals = [(np.abs(zgrid - z)).argmin() for z in z1]
+    j_vals = [(np.abs(zgrid - z)).argmin() for z in z2]
+    outlier_fracs = np.array(
+        [
+            np.trapz(pdf[i_vals[n] : j_vals[n]], x=zgrid[i_vals[n] : j_vals[n]])
+            for n in np.arange(len(zgrid))
+        ]
+    )
+
+    # Take absolute maximum
+    if max:
+        om = zgrid[np.argmax(outlier_fracs)]
+    else:
+        # If fracs has flat peak take middle value
+        n_close = np.sum(
+            np.isclose(
+                outlier_fracs,
+                outlier_fracs[np.argmax(outlier_fracs)],
+                atol=1e-3,
+                rtol=1e-3,
+            )
+        )
+        om = zgrid[
+            np.isclose(
+                outlier_fracs,
+                outlier_fracs[np.argmax(outlier_fracs)],
+                atol=1e-3,
+                rtol=1e-3,
+            )
+        ][n_close // 2]
+
+    return om, outlier_fracs
+
+
+def quantiles(
+    zgrid,
+    cdf,
+    q_values=[
+        (1 - 0.997) / 2,
+        (1 - 0.68) / 2,
+        0.5,
+        1 - (1 - 0.68) / 2,
+        1 - (1 - 0.997) / 2,
+    ],
+):
+    """Get the upp and lower sigmas"""
+    z_values = []
+    for q in q_values:
+        z_values.append(zgrid[np.argmin(np.abs(q - cdf))])
+
+    return z_values
+
+
 def make_posteriors(table, spec_col="SPECZ_REDSHIFT", id_col="id"):
     # Only run for specz objects
     # m=(table[spec_col]>0.02)
@@ -187,7 +252,7 @@ def make_posteriors(table, spec_col="SPECZ_REDSHIFT", id_col="id"):
             # outlier min integral of pdf between (z-0.1)(1+z) and (z+0.1)(1+z)
             z_om, fracs = outlier_min(zgrid, pdf, max=False)
 
-        except:
+        except IndexError:
             # print('{} failed due to index error'.format(row['ERO_ID']))
             # break
             peak, median, z_om, cdf, norm, pit = (
