@@ -597,6 +597,7 @@ def photoz_plots_onecol(
     ax1_maxoc = np.max(hb1.get_array())
     if ticks1 is None:
         ticks1 = axis_scale(ax1_maxoc)
+        print("ticks1", ticks1)
     ax1.set(xlim=xlim, ylim=delz_lims)
 
     ax1.set_xlabel(z1_name)
@@ -666,7 +667,7 @@ def axis_scale(n):
     if n < 0:
         raise ValueError
     if n <= 10:
-        scales = np.arange(0, n)
+        scales = np.arange(1, n)
     if n > 10:
         scales = [int(10**i) for i in np.arange(0, np.floor(np.log10(n)) + 1)]
     return scales

@@ -246,7 +246,7 @@ def plot_pit_qq(
             ax1.hist(pit_vals, bins=bins, alpha=0.7)
             ax1.set_ylabel("Number")
             ax1.hlines(y_uni, xmin=0, xmax=1, color="k")
-    leg = ax0.legend(handlelength=0, handletextpad=0, fancybox=True)
+    leg = ax0.legend(handlelength=0, handletextpad=0, fancybox=True, loc="upper left")
     for item in leg.legend_handles:
         item.set_visible(False)
     if show_qq:
@@ -666,9 +666,9 @@ def prepare_pit(pdfs, zgrid, ztrue, code="", savefig=False):
     pit_out_rate = metamets["outlier_rate"]
     print(f"PIT outlier rate of this sample: {pit_out_rate:.6f}")
     pit_out_rate = pitobj.evaluate_PIT_outlier_rate()
-    pit_out_rate = np.sum((pitobj.pit_samps > 0.99) | (pitobj.pit_samps < 0.01)) / len(
-        pitobj.pit_samps
-    )
+    pit_out_rate = np.sum(
+        (pitobj.pit_samps > 0.9999) | (pitobj.pit_samps < 0.0001)
+    ) / len(pitobj.pit_samps)
     print(f"PIT outlier rate from pit obj: {pit_out_rate:.6f}")
     plot_pit_qq(
         pdfs,
