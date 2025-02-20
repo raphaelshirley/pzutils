@@ -426,6 +426,7 @@ def photoz_plots_onecol(
     med_bins=30,
     ticks0=None,
     ticks1=None,
+    yticks=None,
     no_plots=False,
 ):
     """Standard photoz compariosn plots
@@ -514,7 +515,6 @@ def photoz_plots_onecol(
     ax0_maxoc = np.max(hb0.get_array())
     if ticks0 is None:
         ticks0 = axis_scale(ax0_maxoc)
-    ax0.set(xlim=xlim, ylim=ylim)
 
     # ax0.set_xlabel(z1_name)
     ax0.set_ylabel(z2_name)
@@ -549,12 +549,13 @@ def photoz_plots_onecol(
         color="red",
         linewidth="1.",
     )
+
     # divider0 = make_axes_locatable(ax0)
     # cax0 = divider0.append_axes("right", size="5%", pad=0.05)
     # cb=fig.colorbar() #(hb0,ax=ax0,cax=cax0)#,label='$N_{Objects}$')
 
     # Text description
-    textstr = "{}, {}/{} sources visible, \n $\eta$: {:.1f}%, $\sigma_{{NMAD}}$: {:.3f}, bias: {:.3f}".format(
+    textstr = "{}, \n{}/{} sources visible, \n$\eta$: {:.1f}%, $\sigma_{{NMAD}}$: {:.3f}, bias: {:.3f}".format(
         name, np.sum(mask), len(mask), outlier_frac * 100, sigma_nmad, bias
     )
     # Title
@@ -572,7 +573,10 @@ def photoz_plots_onecol(
         bbox=props,
     )
 
-    ax0.set_yticks(np.arange(ylim[1] + 1))
+    # ax0.set_yticks(np.arange(ylim[1] + 1))
+    if yticks is not None:
+        ax0.set_yticks(yticks)
+    ax0.set(xlim=xlim, ylim=ylim)
     # fig.colorbar(hb0)
 
     # colourbar
@@ -597,7 +601,7 @@ def photoz_plots_onecol(
     ax1_maxoc = np.max(hb1.get_array())
     if ticks1 is None:
         ticks1 = axis_scale(ax1_maxoc)
-        print("ticks1", ticks1)
+    # print("ticks1", ticks1)
     ax1.set(xlim=xlim, ylim=delz_lims)
 
     ax1.set_xlabel(z1_name)
@@ -657,17 +661,19 @@ def fill_nan_linear(arr):
 
 
 def axis_scale(n):
-    """ "Return colorbar values for the scale
+    """Return colorbar values for the scale
 
     Powers of ten up to largest power of ten below n if n>10
-    Else all values lower than 10
+    Else all values lower than 10 except the highest
 
     """
     n = int(n)
-    if n < 0:
+    if n < 1:
         raise ValueError
+    if n <= 2:
+        scales = [1]
     if n <= 10:
-        scales = np.arange(1, n)
+        scales = np.arange(1, n - 1)
     if n > 10:
         scales = [int(10**i) for i in np.arange(0, np.floor(np.log10(n)) + 1)]
     return scales
@@ -1014,3 +1020,21 @@ def make_posteriors(table, spec_col="SPECZ_REDSHIFT", id_col="id"):
     posteriors["outlier_mins"] = np.array(outlier_mins)
     posteriors["pits"] = np.array(pits)
     return posteriors
+
+
+def merge_arrays(arr1, arr2, mask):
+    """merge two arrays according to mask selecting elements from first
+
+    inputs
+    ======
+
+    arr1 : np.array
+        First array
+    arr2 : np.array
+        Second array
+    mask : np.array
+        Array of truth values choosing arr1 or arr2
+    """
+    arr = arr2.copy()
+    arr[mask] = arr1[mask]
+    return arr
