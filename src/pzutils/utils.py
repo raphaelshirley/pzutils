@@ -4,10 +4,12 @@ from astropy.io import ascii
 from astropy.io.ascii import InconsistentTableError
 import numpy as np
 import scipy as sp
+import subprocess
 
-from herschelhelp_internal.utils import mag_to_flux
+from herschelhelp_internal.utils import mag_to_flux, ebv
 from herschelhelp.filters import correct_galactic_extinction
 from herschelhelp.external import convert_table_for_cigale
+
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -420,7 +422,7 @@ def photoz_plots_onecol(
     ylim=[0, 4],
     delz_extent=0.4,
     name="",
-    log=False,
+    log=True,
     savefig=False,
     plot_medians=False,
     med_bins=30,
@@ -479,10 +481,14 @@ def photoz_plots_onecol(
 
     maskPos = (z1 > 0) & (z2 > 0)
     outlier_frac = np.sum(np.abs(delz[maskPos]) > 0.15) / np.sum(maskPos)
-    sigma_nmad = 1.48 * np.nanmedian(np.abs(delz[maskPos]))
+    sigma_nmad_biased = 1.48 * np.nanmedian(np.abs(delz[maskPos]))
     bias = np.nanmedian(delz)
+    sigma_nmad_unbiased = 1.48 * np.nanmedian(np.abs(delz[maskPos] - bias))
+    sigma_nmad = sigma_nmad_unbiased
     stats["bias"] = bias
-    stats["sigma_nmad"] = sigma_nmad
+    stats["sigma_nmad"] = sigma_nmad  # sigma_nmad
+    stats["sigma_nmad_biased"] = sigma_nmad_biased
+    stats["sigma_nmad_unbiased"] = sigma_nmad_unbiased
     stats["outlier_frac"] = outlier_frac
     if no_plots:
         return stats
@@ -502,13 +508,16 @@ def photoz_plots_onecol(
     gridsize = [round(np.sqrt(3) * n_hex * x_scale), round(n_hex * y_scale)]
     del_gridsize = [round(np.sqrt(3) * n_hex * x_scale_del), round(n_hex * y_scale_del)]
     # ax1.set_aspect('equal') # 4/0.4
-
+    if log:
+        hexbins = "log"
+    else:
+        hexbins = None
     hb0 = ax0.hexbin(
         z1[mask],
         z2[mask],
         cmap=cmap,
         mincnt=1,
-        bins="log",
+        bins=hexbins,
         linewidths=0.01,
         gridsize=gridsize,
     )
@@ -594,7 +603,7 @@ def photoz_plots_onecol(
         delz[mask2],
         cmap=cmap,
         mincnt=1,
-        bins="log",
+        bins=hexbins,
         linewidths=0.01,
         gridsize=del_gridsize,
     )
@@ -673,7 +682,7 @@ def axis_scale(n):
     if n <= 2:
         scales = [1]
     if n <= 10:
-        scales = np.arange(1, n - 1)
+        scales = np.arange(1, n)
     if n > 10:
         scales = [int(10**i) for i in np.arange(0, np.floor(np.log10(n)) + 1)]
     return scales
@@ -1038,3 +1047,59 @@ def merge_arrays(arr1, arr2, mask):
     arr = arr2.copy()
     arr[mask] = arr1[mask]
     return arr
+
+
+def get_attenuation_response(
+    config,
+    para_file=None,
+    filter_extinc="/Users/rshirley/Documents/github/LEPHARE/source/filter_extinc",
+):
+    """Run the c++ executatble and read the attenuation values"""
+    if para_file is None:
+        para_file = "./temp.para"
+        lp.write_para_config(lp.all_types_to_keymap(config), para_file)
+    result = subprocess.run(
+        [
+            "/Users/rshirley/Documents/github/LEPHARE/source/filter_extinc",
+            "-c",
+            para_file,
+            "-FILTER_FILE",
+            f"{config['FILTER_FILE']}.dat",
+        ],
+        stdout=subprocess.PIPE,
+    )
+    print(f"{config['FILTER_FILE']}.dat")
+    print(result.stdout.decode("utf-8"))
+    txt = result.stdout.decode("utf-8")
+    out = txt.split("\n")[16:-2]
+    att = [float(l.split()[-1]) for l in out]
+    att
+    start = False
+    out_dict = {}
+    for l in str(result).split("\\n"):
+        if l.startswith("Times to"):
+            start = False
+        if start:
+            dat = l.split()
+            out_dict[dat[0]] = [float(f) for f in dat[1:]]
+
+        if l.startswith(" assuming"):
+            print(l)
+            start = True
+
+    return att, out_dict
+
+
+def ebv_correction(att, flux, ra=None, dec=None, ebv_vals=None, mags=False):
+    """Update fluxes according to ebv correction"""
+    if ebv_vals is None:
+        ebv_vals = ebv(ra, dec)
+
+    print(f"Applying attenuation {att}")
+    att_ebv = att * ebv_vals
+    flux = np.array(flux)
+    if mags:
+        flux -= att_ebv
+    else:
+        flux *= 10 ** (att_ebv / 2.5)
+    return flux
