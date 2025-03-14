@@ -490,6 +490,8 @@ def photoz_plots_onecol(
     stats["sigma_nmad_biased"] = sigma_nmad_biased
     stats["sigma_nmad_unbiased"] = sigma_nmad_unbiased
     stats["outlier_frac"] = outlier_frac
+    stats["n_in"] = len(mask)
+    stats["n_shown"] = np.sum(mask)
     if no_plots:
         return stats
     # print("""Objects in range: {}
