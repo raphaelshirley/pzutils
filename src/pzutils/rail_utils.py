@@ -10,6 +10,7 @@ import os
 from qp.ensemble import Ensemble
 from qp import interp
 import qp
+from collections import OrderedDict
 
 
 def read_pz_output(
@@ -680,3 +681,22 @@ def prepare_pit(pdfs, zgrid, ztrue, code="", savefig=False):
         savefig=savefig,
     )
     return ens_zspec, pitobj, metamets
+
+
+def astropy_to_rail(input_table):
+    """Take a LePHARE input astropy table and output the dictionary required by RAIL.
+
+    This depends on colnames having the standard order.
+
+    I simply take the column names to generate an OrderedDict of the data and return the
+    flux column names and flux error names to be handed to RAIL.
+    """
+    output = OrderedDict()
+    for c in input_table.colnames:
+        output[c] = np.array(input_table[c])
+    flux_cols = input_table.colnames[1::2][:-2]  # Take every other column from column 1
+    flux_err_cols = input_table.colnames[0::2][
+        1:-1
+    ]  # Take every other column from column 2
+    output["redshift"] = np.array(input_table[input_table.colnames[-2]])
+    return output, flux_cols, flux_err_cols

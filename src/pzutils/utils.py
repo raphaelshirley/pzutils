@@ -13,6 +13,7 @@ from herschelhelp.external import convert_table_for_cigale
 
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import matplotlib.ticker as ticker
 
 plt.rc("figure", figsize=(10, 6))
 plt.rcParams.update({"font.size": 14})
@@ -430,6 +431,7 @@ def photoz_plots_onecol(
     ticks1=None,
     yticks=None,
     no_plots=False,
+    no_cbars=None,
 ):
     """Standard photoz compariosn plots
 
@@ -525,7 +527,9 @@ def photoz_plots_onecol(
     )
     ax0_maxoc = np.max(hb0.get_array())
     if ticks0 is None:
-        ticks0 = axis_scale(ax0_maxoc)
+        ticks0, labels0 = axis_scale(ax0_maxoc)
+    else:
+        labels0 = ticks0
 
     # ax0.set_xlabel(z1_name)
     ax0.set_ylabel(z2_name)
@@ -591,12 +595,20 @@ def photoz_plots_onecol(
     # fig.colorbar(hb0)
 
     # colourbar
-    divider0 = make_axes_locatable(ax0)
-    cax0 = divider0.append_axes("right", size="5%", pad=0.05)
 
-    cbar0 = plt.colorbar(hb0, cax=cax0)
-    cbar0.set_ticks(ticks0)
-    cbar0.set_ticklabels(ticks0)
+    if not no_cbars:
+        divider0 = make_axes_locatable(ax0)
+        cax0 = divider0.append_axes("right", size="5%", pad=0.05)
+        # cax0.minorticks_off()
+        cbar0 = fig.colorbar(
+            hb0,
+            cax=cax0,
+            ticks=ticks0,
+            format=ticker.FixedFormatter(labels0),
+        )
+        # cbar0.set_ticks(ticks0)
+        # cbar0.set_ticklabels(ticks0)
+        # cbar0.ax.yaxis.set_ticks_position("none")
 
     # The delz norm plot
 
@@ -611,7 +623,9 @@ def photoz_plots_onecol(
     )
     ax1_maxoc = np.max(hb1.get_array())
     if ticks1 is None:
-        ticks1 = axis_scale(ax1_maxoc)
+        ticks1, labels1 = axis_scale(ax1_maxoc)
+    else:
+        labels1 = ticks1
     # print("ticks1", ticks1)
     ax1.set(xlim=xlim, ylim=delz_lims)
 
@@ -639,14 +653,24 @@ def photoz_plots_onecol(
         ax1.fill_between(mid_points, delz_16, delz_84, color="r", alpha=0.3)
 
     # colourbar
-    divider1 = make_axes_locatable(ax1)
-    cax1 = divider1.append_axes("right", size="5%", pad=0.05)
+    if not no_cbars:
+        divider1 = make_axes_locatable(ax1)
+        cax1 = divider1.append_axes("right", size="5%", pad=0.05)
+        if ax1_maxoc < 10:
+            labels1[-1] = ""
+        cbar1 = fig.colorbar(
+            hb1,
+            cax=cax1,
+            ticks=ticks1,
+            format=ticker.FixedFormatter(labels1),
+        )
+        # cbar1.locator = ticker.FixedLocator(ticks1)
+        # cbar1.update_ticks()
+        # cbar1.ax.set_yticklabels([str(t) for t in ticks1])
+        # cbar1.set_ticks(ticks1, minor=True, labels=ticks1)
+        # cbar1.set_ticklabels([str(t) for t in ticks1])
 
-    cbar1 = plt.colorbar(hb1, cax=cax1)
-    cbar1.set_ticks(ticks1)
-    cbar1.set_ticklabels(ticks1)
-
-    plt.subplots_adjust(wspace=0, hspace=0)
+    fig.subplots_adjust(wspace=0, hspace=0)
 
     fig_name = (
         "ZZplot_{}_{}_{}".format(z1_name, z2_name, name)
@@ -660,15 +684,22 @@ def photoz_plots_onecol(
     if savefig:
         fig.savefig("./figs/{}.png".format(fig_name), bbox_inches="tight")
         fig.savefig("./figs/{}.pdf".format(fig_name), bbox_inches="tight")
+    plt.show()
     return stats
 
 
 def fill_nan_linear(arr):
     # Find indices where values are NaN
     nans = np.isnan(arr)
+    if np.sum(nans) == 0:
+        return arr
     # Use np.interp to linearly interpolate NaN values
     arr[nans] = np.interp(np.flatnonzero(nans), np.flatnonzero(~nans), arr[~nans])
     return arr
+
+
+def is_close_to_integer(num, tolerance=0.001):
+    return abs(num - round(num)) <= tolerance
 
 
 def axis_scale(n):
@@ -678,16 +709,24 @@ def axis_scale(n):
     Else all values lower than 10 except the highest
 
     """
-    n = int(n)
+    print(n)
+    n = round(n)
     if n < 1:
         raise ValueError
-    if n <= 2:
-        scales = [1]
-    if n <= 10:
-        scales = np.arange(1, n)
-    if n > 10:
+    # elif n <= 2:
+    #     scales = [1]
+    elif n < 10:
+        # scales = [1, 10]
+        # scales = [int(i) for i in np.arange(1, n)]
+        scales = np.arange(1, n + 0.00000001, 0.2)
+        # scales = [int()]
+        labels = [str(round(num)) if is_close_to_integer(num) else "" for num in scales]
+
+    elif n > 10:
         scales = [int(10**i) for i in np.arange(0, np.floor(np.log10(n)) + 1)]
-    return scales
+        labels = scales
+    print(scales, labels)
+    return scales, labels
 
 
 def binned_stats(x, y, bins=30):
