@@ -432,6 +432,7 @@ def photoz_plots_onecol(
     yticks=None,
     no_plots=False,
     no_cbars=None,
+    reverse_color=False,
 ):
     """Standard photoz compariosn plots
 
@@ -444,6 +445,8 @@ def photoz_plots_onecol(
     orig_map = plt.colormaps["magma"]
     # reversed_map=orig_map.reversed()
     cmap = plt.cm.viridis
+    if reverse_color:
+        cmap = cmap.reversed()
     stats = {}
 
     fig, ((ax0), (ax1)) = plt.subplots(
@@ -484,7 +487,7 @@ def photoz_plots_onecol(
     maskPos = (z1 > 0) & (z2 > 0)
     outlier_frac = np.sum(np.abs(delz[maskPos]) > 0.15) / np.sum(maskPos)
     sigma_nmad_biased = 1.48 * np.nanmedian(np.abs(delz[maskPos]))
-    bias = np.nanmedian(delz)
+    bias = np.nanmedian(delz[maskPos])
     sigma_nmad_unbiased = 1.48 * np.nanmedian(np.abs(delz[maskPos] - bias))
     sigma_nmad = sigma_nmad_unbiased
     stats["bias"] = bias
@@ -695,6 +698,8 @@ def fill_nan_linear(arr):
         return arr
     # Use np.interp to linearly interpolate NaN values
     arr[nans] = np.interp(np.flatnonzero(nans), np.flatnonzero(~nans), arr[~nans])
+    if len(arr[~nans]) == 0:
+        return np.full_like(arr, np.nan)
     return arr
 
 
@@ -715,7 +720,7 @@ def axis_scale(n):
         raise ValueError
     # elif n <= 2:
     #     scales = [1]
-    elif n < 10:
+    elif n <= 10:
         # scales = [1, 10]
         # scales = [int(i) for i in np.arange(1, n)]
         scales = np.arange(1, n + 0.00000001, 0.2)
@@ -725,7 +730,7 @@ def axis_scale(n):
     elif n > 10:
         scales = [int(10**i) for i in np.arange(0, np.floor(np.log10(n)) + 1)]
         labels = scales
-    print(scales, labels)
+    # print(scales, labels)
     return scales, labels
 
 
