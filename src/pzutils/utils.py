@@ -449,6 +449,46 @@ def photoz_plots_onecol(
         cmap = cmap.reversed()
     stats = {}
 
+    mask = z1 > xlim[0]
+    mask &= z1 < xlim[1]
+    mask &= z2 > ylim[0]
+    mask &= z2 < ylim[1]
+    maskPos = (z1 > 0) & (z2 > 0)
+    delz = (z2 - z1) / (1 + z1)
+    med_delz = np.nanmedian(z2[maskPos] - z1[maskPos])
+    delz_unbiased = (z2 - z1 - med_delz) / (1 + z1)
+
+    # (xlim[1]-xlim[0])
+    delz_lims = [
+        -delz_extent / 2,
+        delz_extent / 2,
+    ]  # [-(xlim[1]-xlim[0])/2,(xlim[1]-xlim[0])/2]
+    mask2 = z1 > xlim[0]
+    mask2 &= z1 < xlim[1]
+    # mask2 &= z2 > ylim[0]
+    # mask2 &= z2 < ylim[1]
+    mask2 &= delz > delz_lims[0]
+    mask2 &= delz < delz_lims[1]
+
+    outlier_frac = np.sum(np.abs(delz[maskPos]) > 0.15) / np.sum(maskPos)
+    sigma_nmad_biased = 1.48 * np.nanmedian(np.abs(delz[maskPos]))
+    bias = np.nanmedian(delz[maskPos])
+    bias_norm = np.nanmedian(delz[maskPos])
+    bias_notnorm = np.nanmedian(z2[maskPos] - z1[maskPos])
+    sigma_nmad_unbiased = 1.48 * np.nanmedian(np.abs(delz_unbiased[maskPos]))
+    sigma_nmad = sigma_nmad_unbiased
+    stats["bias"] = bias
+    stats["bias_notnorm"] = bias_notnorm
+    stats["bias_norm"] = bias_norm
+    stats["sigma_nmad"] = sigma_nmad  # sigma_nmad
+    stats["sigma_nmad_biased"] = sigma_nmad_biased
+    stats["sigma_nmad_unbiased"] = sigma_nmad_unbiased
+    stats["outlier_frac"] = outlier_frac
+    stats["n_in"] = len(mask)
+    stats["n_shown"] = np.sum(mask)
+    if no_plots:
+        return stats
+
     fig, ((ax0), (ax1)) = plt.subplots(
         nrows=2, sharex=True, figsize=(5.4, 10)
     )  # , layout='constrained')
@@ -465,40 +505,6 @@ def photoz_plots_onecol(
 
     # ax2.set_aspect('equal')
     # ax3.set_aspect('equal')
-
-    mask = z1 > xlim[0]
-    mask &= z1 < xlim[1]
-    mask &= z2 > ylim[0]
-    mask &= z2 < ylim[1]
-    delz = (z2 - z1) / (1 + z1)
-
-    # (xlim[1]-xlim[0])
-    delz_lims = [
-        -delz_extent / 2,
-        delz_extent / 2,
-    ]  # [-(xlim[1]-xlim[0])/2,(xlim[1]-xlim[0])/2]
-    mask2 = z1 > xlim[0]
-    mask2 &= z1 < xlim[1]
-    # mask2 &= z2 > ylim[0]
-    # mask2 &= z2 < ylim[1]
-    mask2 &= delz > delz_lims[0]
-    mask2 &= delz < delz_lims[1]
-
-    maskPos = (z1 > 0) & (z2 > 0)
-    outlier_frac = np.sum(np.abs(delz[maskPos]) > 0.15) / np.sum(maskPos)
-    sigma_nmad_biased = 1.48 * np.nanmedian(np.abs(delz[maskPos]))
-    bias = np.nanmedian(delz[maskPos])
-    sigma_nmad_unbiased = 1.48 * np.nanmedian(np.abs(delz[maskPos] - bias))
-    sigma_nmad = sigma_nmad_unbiased
-    stats["bias"] = bias
-    stats["sigma_nmad"] = sigma_nmad  # sigma_nmad
-    stats["sigma_nmad_biased"] = sigma_nmad_biased
-    stats["sigma_nmad_unbiased"] = sigma_nmad_unbiased
-    stats["outlier_frac"] = outlier_frac
-    stats["n_in"] = len(mask)
-    stats["n_shown"] = np.sum(mask)
-    if no_plots:
-        return stats
     # print("""Objects in range: {}
     # Outlier fraction: {}%
     # Sigma (NMAD):{}
