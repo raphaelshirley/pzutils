@@ -7,7 +7,7 @@ from qp.metrics.pit import PIT
 from IPython.display import Markdown
 import h5py
 import os
-from qp.ensemble import Ensemble
+from qp import Ensemble
 from qp import interp
 import qp
 from collections import OrderedDict
@@ -583,9 +583,7 @@ class Sample(Ensemble):
     @property
     def pit(self):
         if self._pit is None:
-            pit_array = np.array(
-                [self[i].cdf(self.ztrue[i])[0][0] for i in range(len(self))]
-            )
+            pit_array = np.array([self[i].cdf(self.ztrue[i]) for i in range(len(self))])
             self._pit = pit_array
         return self._pit
 
