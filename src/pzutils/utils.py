@@ -453,6 +453,11 @@ def photoz_plots_onecol(
     mask &= z1 < xlim[1]
     mask &= z2 > ylim[0]
     mask &= z2 < ylim[1]
+
+    if np.sum(mask) == 0:
+        print("No objects in range for {}".format(name))
+        return None
+
     maskPos = (z1 > 0) & (z2 > 0)
     delz = (z2 - z1) / (1 + z1)
     med_delz = np.nanmedian(z2[maskPos] - z1[maskPos])
