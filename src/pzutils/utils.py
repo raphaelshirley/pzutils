@@ -707,10 +707,11 @@ def fill_nan_linear(arr):
     nans = np.isnan(arr)
     if np.sum(nans) == 0:
         return arr
+    if np.sum(~nans) == 0:
+        return np.full_like(arr, np.nan)
     # Use np.interp to linearly interpolate NaN values
     arr[nans] = np.interp(np.flatnonzero(nans), np.flatnonzero(~nans), arr[~nans])
-    if len(arr[~nans]) == 0:
-        return np.full_like(arr, np.nan)
+
     return arr
 
 

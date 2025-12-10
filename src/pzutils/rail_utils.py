@@ -229,7 +229,9 @@ def plot_pit_qq(
         fzdata = Ensemble(interp, data=dict(xvals=zgrid, yvals=pdfs))
         pitobj = PIT(fzdata, ztrue)
         pit_vals = np.array(pitobj.pit_samps)
-        pit_out_rate = pitobj.evaluate_PIT_outlier_rate()
+        pit_out_rate = np.mean(
+            (pit_vals < 0.005) | (pit_vals > 0.995)
+        )  # pitobj.evaluate_PIT_outlier_rate()
 
         try:
             y_uni = float(len(pit_vals)) / float(bins)
@@ -244,7 +246,8 @@ def plot_pit_qq(
             )  # -0.001, 1.001)
         else:
             ax1 = ax0.twinx()
-            ax1.hist(pit_vals, bins=bins, alpha=0.7)
+            hist = ax1.hist(pit_vals, bins=bins, alpha=0.7)
+            ax1.set_ylim([0, 1.1 * np.max(hist[0][1:-1])])
             ax1.set_ylabel("Number")
             ax1.hlines(y_uni, xmin=0, xmax=1, color="k")
     leg = ax0.legend(handlelength=0, handletextpad=0, fancybox=True, loc="upper left")
